@@ -3,15 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penjadwalan Keramas Rambut wapik</title>
+    <title>Jadwal Keramas Wapik - Reward Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Menggunakan SDK Firebase versi v9+ Compatibility Mode agar kode tetap berjalan -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+
+        .dark {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .calendar-grid {
@@ -38,16 +56,10 @@
             border: 2px solid #60a5fa;
         }
 
-        .is-keramas::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 8px;
-            height: 8px;
-            background-color: #3b82f6;
-            border-radius: 50%;
-            border: 2px solid white;
+        .dark .is-keramas {
+            background-color: #1e3a8a;
+            color: #60a5fa;
+            border-color: #3b82f6;
         }
 
         .selected {
@@ -58,291 +70,432 @@
         .task-card {
             cursor: pointer;
             transition: all 0.2s;
+            background-color: var(--card-bg);
         }
 
         .task-checked {
-            background-color: #f0fdf4;
-            border-color: #22c55e;
+            background-color: #f0fdf4 !important;
+            border-color: #22c55e !important;
+        }
+        
+        .dark .task-checked {
+            background-color: #064e3b !important;
+            border-color: #10b981 !important;
         }
 
-        #photo-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .reward-img {
+            max-height: 70vh;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <header class="text-center mb-10">
-            <h1 class="text-4xl font-extrabold text-blue-600 tracking-tight">Jadwal Keramas Wapik</h1>
-            <p class="text-slate-500 mt-2 font-medium italic">"Disiplin Keramas, jgn males malesan cil"</p>
-        </header>
+    <!-- Modal Login Admin -->
+    <div id="admin-login-modal" class="modal">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4">
+            <h2 class="text-xl font-bold mb-4 text-slate-800 dark:text-white">Akses Admin</h2>
+            <p class="text-sm text-slate-500 mb-4">Masukkan PIN rahasia untuk masuk.</p>
+            <input type="password" id="admin-pass" placeholder="PIN Admin" class="w-full p-3 rounded-xl border dark:border-slate-600 dark:bg-slate-700 mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="flex gap-2">
+                <button onclick="closeModal('admin-login-modal')" class="flex-1 py-2 text-slate-500 font-semibold">Batal</button>
+                <button onclick="checkAdmin()" class="flex-1 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">Masuk</button>
+            </div>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Kolom Kiri: Kalender -->
-            <section class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold flex items-center gap-2 text-slate-700">
-                        <i class="fa-solid fa-calendar-days text-blue-500"></i>
-                        Jadwal 2026 - 2030
-                    </h2>
-                    <div class="flex gap-2">
-                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
+    <!-- Modal Alert -->
+    <div id="alert-modal" class="modal">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4">
+            <div id="alert-emoji" class="text-5xl mb-4">🤨</div>
+            <p id="alert-text" class="text-lg font-bold text-slate-700 dark:text-white leading-relaxed"></p>
+            <button onclick="closeModal('alert-modal')" class="mt-6 px-8 py-3 bg-red-500 text-white rounded-full font-bold">Oke Mengerti</button>
+        </div>
+    </div>
 
-                <div id="month-label" class="text-center font-bold mb-4 text-blue-700 text-lg uppercase tracking-wider">
-                    Mei 2024
-                </div>
+    <!-- Modal Reward -->
+    <div id="reward-modal" class="modal">
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center">
+            <h2 class="text-2xl font-bold mb-4 text-blue-600">Yeay! Ini Rewardnya! 💖</h2>
+            <img id="reward-display" src="" class="reward-img mx-auto mb-4" alt="Reward Foto">
+            <div class="flex gap-2">
+                <button onclick="closeModal('reward-modal')" class="flex-1 py-3 text-slate-500 font-bold">Tutup</button>
+                <a id="download-link" href="#" download="reward_wapik.jpg" class="flex-1 py-3 bg-green-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Simpan Galeri
+                </a>
+            </div>
+        </div>
+    </div>
 
-                <div class="calendar-grid text-center mb-2">
-                    <div class="text-xs font-bold text-slate-400">MIN</div>
-                    <div class="text-xs font-bold text-slate-400">SEN</div>
-                    <div class="text-xs font-bold text-slate-400">SEL</div>
-                    <div class="text-xs font-bold text-slate-400">RAB</div>
-                    <div class="text-xs font-bold text-slate-400">KAM</div>
-                    <div class="text-xs font-bold text-slate-400">JUM</div>
-                    <div class="text-xs font-bold text-slate-400">SAB</div>
-                </div>
+    <div class="max-w-6xl mx-auto">
+        <nav class="flex justify-between items-center mb-8">
+            <button onclick="toggleDarkMode()" class="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:scale-105 transition-transform border border-slate-100 dark:border-slate-700">
+                <i id="theme-icon" class="fa-solid fa-moon"></i>
+            </button>
+            <div class="flex gap-3">
+                <button onclick="openAdmin()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl text-sm font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Admin Panel</button>
+            </div>
+        </nav>
 
-                <div id="calendar-days" class="calendar-grid">
-                    <!-- Days injected by JS -->
-                </div>
+        <div id="main-content">
+            <header class="text-center mb-10">
+                <h1 class="text-4xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">Jadwal Keramas Wapik</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 font-medium italic">"Disiplin Keramas, jgn males malesan cil"</p>
+            </header>
 
-                <div class="mt-8 flex items-center gap-3 text-sm text-slate-500 bg-blue-50 p-4 rounded-2xl">
-                    <div class="w-5 h-5 bg-blue-100 border-2 border-blue-400 rounded-lg"></div>
-                    <span>Wajib Keramas (Setiap 3 Hari Sekali)</span>
-                </div>
-            </section>
-
-            <!-- Kolom Kanan: Detail & Aksi -->
-            <section class="space-y-6">
-                <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Kalender -->
+                <section class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-slate-700">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 id="selected-date-label" class="text-xl font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-clock text-blue-500"></i>
-                            1 Mei 2026
-                        </h3>
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-blue-500"></i>
+                            Kalender Disiplin
+                        </h2>
+                        <div class="flex gap-2">
+                            <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
+                    <div id="month-label" class="text-center font-bold mb-4 text-blue-700 dark:text-blue-400 text-lg uppercase tracking-wider"></div>
+                    <div class="calendar-grid text-center mb-2">
+                        <div class="text-xs font-bold text-slate-400">MIN</div>
+                        <div class="text-xs font-bold text-slate-400">SEN</div>
+                        <div class="text-xs font-bold text-slate-400">SEL</div>
+                        <div class="text-xs font-bold text-slate-400">RAB</div>
+                        <div class="text-xs font-bold text-slate-400">KAM</div>
+                        <div class="text-xs font-bold text-slate-400">JUM</div>
+                        <div class="text-xs font-bold text-slate-400">SAB</div>
+                    </div>
+                    <div id="calendar-days" class="calendar-grid"></div>
+                </section>
 
-                    <div id="task-area" class="space-y-4">
-                        <!-- Task: Keramas -->
-                        <div onclick="toggleTask('keramas')" id="task-keramas" class="task-card flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 hover:border-blue-200">
-                            <div class="flex items-center gap-4">
-                                <div class="bg-blue-500 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
-                                    <i class="fa-solid fa-soap"></i>
-                                </div>
-                                <span class="font-bold text-slate-700 uppercase tracking-tight">Sudah Keramas</span>
-                            </div>
-                            <div id="check-keramas" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
-                                <i class="fa-solid fa-check hidden"></i>
-                            </div>
-                        </div>
-
-                        <!-- Task: Sisiran -->
-                        <div onclick="toggleTask('sisiran')" id="task-sisiran" class="task-card flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 hover:border-pink-200">
-                            <div class="flex items-center gap-4">
-                                <div class="bg-pink-500 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-pink-100">
-                                    <i class="fa-solid fa-scissors"></i>
-                                </div>
-                                <span class="font-bold text-slate-700 uppercase tracking-tight">Sudah Sisiran</span>
-                            </div>
-                            <div id="check-sisiran" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
-                                <i class="fa-solid fa-check hidden"></i>
-                            </div>
-                        </div>
-
-                        <!-- Foto Dokumentasi -->
-                        <div class="mt-6">
-                            <p class="text-xs font-bold text-slate-400 uppercase mb-3 ml-1 tracking-widest">Dokumentasi Bukti</p>
-                            <label class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-200 rounded-3xl cursor-pointer hover:bg-slate-50 transition-all overflow-hidden group">
-                                <div id="photo-preview" class="absolute inset-0 hidden"></div>
-                                <div id="upload-placeholder" class="flex flex-col items-center justify-center p-5 text-center">
-                                    <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-camera text-slate-400 text-xl"></i>
+                <!-- Tugas -->
+                <section class="space-y-6">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-slate-700">
+                        <h3 id="selected-date-label" class="text-xl font-bold mb-6 flex items-center gap-2"></h3>
+                        <div id="task-area" class="space-y-4">
+                            <div onclick="toggleTask('keramas')" id="task-keramas" class="task-card flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-blue-500 w-10 h-10 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fa-solid fa-soap"></i>
                                     </div>
-                                    <p class="text-sm font-semibold text-slate-500">Klik untuk upload foto rambut</p>
-                                    <p class="text-xs text-slate-400 mt-1">Bisa lewat Kamera atau Galeri</p>
+                                    <span class="font-bold">Sudah Keramas</span>
                                 </div>
-                                <input type="file" accept="image/*" class="hidden" onchange="handleImage(event)">
-                            </label>
+                                <div id="check-keramas" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
+                                    <i class="fa-solid fa-check hidden"></i>
+                                </div>
+                            </div>
+                            <div onclick="toggleTask('sisiran')" id="task-sisiran" class="task-card flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-pink-500 w-10 h-10 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fa-solid fa-scissors"></i>
+                                    </div>
+                                    <span class="font-bold">Sudah Sisiran</span>
+                                </div>
+                                <div id="check-sisiran" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
+                                    <i class="fa-solid fa-check hidden"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-3xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-all overflow-hidden">
+                                    <div id="photo-preview" class="absolute inset-0 hidden"></div>
+                                    <div id="upload-placeholder" class="text-center">
+                                        <i class="fa-solid fa-camera text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-bold text-slate-500 uppercase">Upload Bukti</p>
+                                    </div>
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleImage(event)">
+                                </label>
+                            </div>
+                            <button onclick="claimReward()" id="btn-reward" class="hidden w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black rounded-2xl shadow-xl animate-bounce">
+                                🎁 AMBIL REWARD FOTO!
+                            </button>
+                            <button onclick="sendWA()" class="w-full py-4 bg-green-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp"></i> Lapor ke WA
+                            </button>
                         </div>
-
-                        <!-- Tombol WA -->
-                        <button onclick="sendWA()" id="btn-wa" class="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-5 rounded-3xl flex items-center justify-center gap-3 shadow-xl shadow-green-100 transition-all active:scale-95">
-                            <i class="fa-brands fa-whatsapp text-2xl"></i>
-                            Kirim Bukti ke WhatsApp
-                        </button>
+                        <div id="holiday-area" class="hidden py-12 text-center text-slate-400 italic">
+                            Libur keramas, istirahat dulu yaa cil...
+                        </div>
                     </div>
+                </section>
+            </div>
+        </div>
 
-                    <div id="holiday-area" class="hidden py-12 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                        <div class="text-4xl mb-3">✨</div>
-                        <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">Libur Keramas</p>
-                        <p class="text-slate-400 text-sm mt-2">Hari ini jadwalnya rambut santai dulu.</p>
+        <!-- Dashboard Admin -->
+        <div id="admin-view" class="hidden space-y-8">
+            <div class="flex items-center justify-between">
+                <h1 class="text-3xl font-black">Dashboard Admin</h1>
+                <button onclick="closeAdmin()" class="px-6 py-2 bg-red-500 text-white rounded-xl font-bold">Keluar</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700">
+                    <h2 class="font-bold text-lg mb-4">Status Wafiq Terbaru</h2>
+                    <div id="admin-status-list" class="space-y-3 max-h-60 overflow-y-auto">
+                        <p class="text-slate-400 italic">Memuat data...</p>
                     </div>
                 </div>
-
-                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-3xl shadow-xl flex items-center gap-4">
-                    <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
-                        <i class="fa-solid fa-calendar-check text-2xl"></i>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700">
+                    <h2 class="font-bold text-lg mb-4">Tambah Foto Reward</h2>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-photo-url" placeholder="URL Foto (Catbox/Imgur)" class="flex-1 p-3 rounded-xl border dark:border-slate-600 dark:bg-slate-700">
+                        <button onclick="addPhoto()" class="px-6 bg-blue-600 text-white rounded-xl font-bold">Simpan</button>
                     </div>
-                    <div>
-                        <p class="text-blue-100 text-xs uppercase tracking-widest font-bold opacity-80">Masa Kontrak Disiplin</p>
-                        <h4 class="text-lg font-bold tracking-tight">Mei 2026 - Des 2030</h4>
-                    </div>
+                    <div id="admin-photo-grid" class="grid grid-cols-4 gap-2"></div>
                 </div>
-            </section>
+            </div>
         </div>
     </div>
 
     <script>
-        const START_DATE = new Date(2024, 4, 1); // 1 Mei 2024
-        const WHATSAPP = "6281399649577";
-        
+        // ==========================================
+        // KONFIGURASI FIREBASE ANDA
+        // ==========================================
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyCSsFQKckz2OXIitlyW_gylMQhBMXqTd0c",
+            authDomain: "keramasrambut.firebaseapp.com",
+            projectId: "keramasrambut",
+            storageBucket: "keramasrambut.firebasestorage.app",
+            messagingSenderId: "610427833983",
+            appId: "1:610427833983:web:61009c6a0d53b49e42394a",
+        };
+
+        // Menggunakan variabel tunggal untuk menghindari SyntaxError redeclaration
+        const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config)
+            ? JSON.parse(__firebase_config) 
+            : myFirebaseConfig;
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'keramas-wapik-v2';
+
+        // Helper path koleksi (Menyesuaikan dengan aturan artifacts jika di preview, atau langsung jika di prod)
+        const getCollectionPath = (name) => {
+            if (typeof __app_id !== 'undefined') {
+                return db.collection('artifacts').doc(appId).collection('public').doc('data').collection(name);
+            }
+            return db.collection(name); 
+        };
+
+        // --- STATE ---
+        const START_DATE = new Date(2024, 4, 1);
+        const ADMIN_PIN = "1945201011121314"; 
         let viewDate = new Date();
         let selectedDate = new Date();
-        let tasks = {
-            keramas: false,
-            sisiran: false
-        };
-        let photoData = null;
+        let isDark = false;
+        let tasks = { keramas: false, sisiran: false, photo: false };
+        let rewardPhotos = [
+            "https://files.catbox.moe/85jalz.jpg",
+            "https://files.catbox.moe/8e38tx.jpg",
+            "https://files.catbox.moe/g30qa8.jpg",
+            "https://files.catbox.moe/2qyvyg.jpg"
+        ];
+        let currentUser = null;
 
+        // --- FUNGSI UTAMA ---
         function isKeramasDay(date) {
-            if (date < START_DATE) return false;
             const d1 = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
             const d2 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            const diffTime = Math.abs(d2 - d1);
-            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays % 3 === 0;
+            const diffDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+            return diffDays >= 0 && diffDays % 3 === 0;
+        }
+
+        function toggleDarkMode() {
+            isDark = !isDark;
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
 
         function renderCalendar() {
-            const daysContainer = document.getElementById('calendar-days');
-            const monthLabel = document.getElementById('month-label');
-            daysContainer.innerHTML = '';
-
-            const year = viewDate.getFullYear();
-            const month = viewDate.getMonth();
+            const container = document.getElementById('calendar-days');
+            const label = document.getElementById('month-label');
+            if(!container) return;
+            container.innerHTML = '';
             
-            monthLabel.innerText = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(viewDate);
+            label.innerText = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(viewDate);
+            const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+            const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
+            for(let i=0; i<firstDay; i++) container.appendChild(document.createElement('div'));
 
-            // Padding days
-            for (let i = 0; i < firstDay; i++) {
-                const div = document.createElement('div');
-                daysContainer.appendChild(div);
-            }
-
-            // Real days
-            for (let day = 1; day <= totalDays; day++) {
-                const date = new Date(year, month, day);
+            for(let d=1; d<=daysInMonth; d++) {
+                const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
                 const btn = document.createElement('button');
-                btn.innerText = day;
-                btn.className = 'calendar-day hover:bg-slate-100';
-                
-                if (isKeramasDay(date)) {
-                    btn.classList.add('is-keramas');
-                }
-
-                if (date.toDateString() === selectedDate.toDateString()) {
-                    btn.classList.add('selected');
-                }
-
-                if (date < START_DATE) {
-                    btn.style.opacity = '0.3';
-                    btn.style.cursor = 'not-allowed';
-                } else {
-                    btn.onclick = () => selectDate(date);
-                }
-
-                daysContainer.appendChild(btn);
+                btn.innerText = d;
+                btn.className = `calendar-day hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${isKeramasDay(date) ? 'is-keramas' : ''}`;
+                if(date.toDateString() === selectedDate.toDateString()) btn.classList.add('selected');
+                btn.onclick = () => selectDate(date);
+                container.appendChild(btn);
             }
         }
 
         function selectDate(date) {
             selectedDate = date;
-            tasks = { keramas: false, sisiran: false };
-            photoData = null;
+            tasks = { keramas: false, sisiran: false, photo: false };
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('upload-placeholder').classList.remove('hidden');
-            updateTaskUI();
+            updateUI();
             renderCalendar();
         }
 
-        function updateTaskUI() {
+        function updateUI() {
             const isWajib = isKeramasDay(selectedDate);
-            const label = document.getElementById('selected-date-label');
-            const taskArea = document.getElementById('task-area');
-            const holidayArea = document.getElementById('holiday-area');
-
-            label.innerHTML = `<i class="fa-solid fa-clock text-blue-500"></i> ${new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDate)}`;
-
-            if (isWajib) {
-                taskArea.classList.remove('hidden');
-                holidayArea.classList.add('hidden');
+            document.getElementById('selected-date-label').innerText = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDate);
+            
+            if(isWajib) {
+                document.getElementById('task-area').classList.remove('hidden');
+                document.getElementById('holiday-area').classList.add('hidden');
             } else {
-                taskArea.classList.add('hidden');
-                holidayArea.classList.remove('hidden');
+                document.getElementById('task-area').classList.add('hidden');
+                document.getElementById('holiday-area').classList.remove('hidden');
             }
 
-            // Update Checkboxes
-            const kCard = document.getElementById('task-keramas');
-            const kCheck = document.getElementById('check-keramas');
-            if (tasks.keramas) {
-                kCard.classList.add('task-checked');
-                kCheck.classList.replace('border-slate-300', 'bg-green-500');
-                kCheck.classList.replace('border-2', 'border-0');
-                kCheck.querySelector('i').classList.remove('hidden');
-            } else {
-                kCard.classList.remove('task-checked');
-                kCheck.classList.replace('bg-green-500', 'border-slate-300');
-                kCheck.classList.replace('border-0', 'border-2');
-                kCheck.querySelector('i').classList.add('hidden');
-            }
+            ['keramas', 'sisiran'].forEach(t => {
+                const card = document.getElementById(`task-${t}`);
+                const check = document.getElementById(`check-${t}`);
+                if(tasks[t]) {
+                    card.classList.add('task-checked');
+                    check.classList.replace('border-slate-300', 'bg-green-500');
+                    check.querySelector('i').classList.remove('hidden');
+                } else {
+                    card.classList.remove('task-checked');
+                    check.classList.replace('bg-green-500', 'border-slate-300');
+                    check.querySelector('i').classList.add('hidden');
+                }
+            });
 
-            const sCard = document.getElementById('task-sisiran');
-            const sCheck = document.getElementById('check-sisiran');
-            if (tasks.sisiran) {
-                sCard.classList.add('task-checked');
-                sCheck.classList.replace('border-slate-300', 'bg-green-500');
-                sCheck.classList.replace('border-2', 'border-0');
-                sCheck.querySelector('i').classList.remove('hidden');
-            } else {
-                sCard.classList.remove('task-checked');
-                sCheck.classList.replace('bg-green-500', 'border-slate-300');
-                sCheck.classList.replace('border-0', 'border-2');
-                sCheck.querySelector('i').classList.add('hidden');
-            }
+            const allDone = tasks.keramas && tasks.sisiran && tasks.photo;
+            document.getElementById('btn-reward').classList.toggle('hidden', !allDone);
         }
 
         function toggleTask(type) {
             tasks[type] = !tasks[type];
-            updateTaskUI();
+            updateUI();
         }
 
         function handleImage(e) {
             const file = e.target.files[0];
-            if (file) {
+            if(file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    photoData = event.target.result;
-                    const preview = document.getElementById('photo-preview');
-                    preview.innerHTML = `<img src="${photoData}" />`;
-                    preview.classList.remove('hidden');
+                reader.onload = (ev) => {
+                    document.getElementById('photo-preview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
+                    document.getElementById('photo-preview').classList.remove('hidden');
                     document.getElementById('upload-placeholder').classList.add('hidden');
+                    tasks.photo = true;
+                    updateUI();
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+
+        async function claimReward() {
+            if (!currentUser) return;
+            const today = new Date().toDateString();
+            if(selectedDate.toDateString() !== today) {
+                showAlert("gaboolleee curaanggg sayaaaanggg, akuu mantaauu kammuu disinii -_", "🤨");
+                return;
+            }
+
+            const randomPhoto = rewardPhotos[Math.floor(Math.random() * rewardPhotos.length)];
+            document.getElementById('reward-display').src = randomPhoto;
+            document.getElementById('download-link').href = randomPhoto;
+            document.getElementById('reward-modal').style.display = 'flex';
+            
+            saveLog();
+        }
+
+        async function saveLog() {
+            if (!currentUser) return;
+            try {
+                await getCollectionPath('logs').add({
+                    date: selectedDate.toDateString(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'LENGKAP'
+                });
+            } catch(e) { console.error("Error saving log:", e); }
+        }
+
+        function showAlert(msg, emoji = "🤨") {
+            document.getElementById('alert-emoji').innerText = emoji;
+            document.getElementById('alert-text').innerText = msg;
+            document.getElementById('alert-modal').style.display = 'flex';
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openAdmin() { document.getElementById('admin-login-modal').style.display = 'flex'; }
+        
+        function checkAdmin() {
+            const pin = document.getElementById('admin-pass').value;
+            if(pin === ADMIN_PIN) {
+                closeModal('admin-login-modal');
+                document.getElementById('main-content').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+                loadAdminData();
+                document.getElementById('admin-pass').value = ''; 
+            } else {
+                alert("PIN Admin Salah!");
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+        }
+
+        async function loadAdminData() {
+            if (!currentUser) return;
+            const list = document.getElementById('admin-status-list');
+            list.innerHTML = '<p class="text-slate-400 italic">Memuat log...</p>';
+            
+            try {
+                const snap = await getCollectionPath('logs').get();
+                const logs = snap.docs.map(d => d.data());
+                
+                list.innerHTML = logs.length === 0 ? '<p class="text-slate-400">Belum ada aktivitas.</p>' : '';
+                logs.forEach(data => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm flex justify-between items-center";
+                    div.innerHTML = `<span>📅 ${data.date}</span> <span class="text-green-500 font-bold bg-green-50 px-2 py-1 rounded-lg">LENGKAP</span>`;
+                    list.appendChild(div);
+                });
+                renderPhotoGrid();
+            } catch (e) { console.error("Admin Load Error:", e); }
+        }
+
+        function renderPhotoGrid() {
+            const grid = document.getElementById('admin-photo-grid');
+            grid.innerHTML = '';
+            rewardPhotos.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = "w-full aspect-square object-cover rounded-lg border dark:border-slate-600";
+                grid.appendChild(img);
+            });
+        }
+
+        function addPhoto() {
+            const url = document.getElementById('new-photo-url').value;
+            if(url) {
+                rewardPhotos.push(url);
+                document.getElementById('new-photo-url').value = '';
+                renderPhotoGrid();
+                alert("Foto reward baru berhasil ditambahkan!");
             }
         }
 
@@ -353,23 +506,31 @@
 
         function sendWA() {
             const dateStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDate);
-            const statusKeramas = tasks.keramas ? '✅ SELESAI' : '❌ BELUM';
-            const statusSisiran = tasks.sisiran ? '✅ SELESAI' : '❌ BELUM';
-            const foto = photoData ? 'Sudah Dilampirkan' : 'Tidak Ada';
-
-            const msg = `Laporan *KERAMAS WAPIK*%0A%0A` +
-                        `📅 Tanggal: ${dateStr}%0A` +
-                        `🚿 Keramas: ${statusKeramas}%0A` +
-                        `🪮 Sisiran: ${statusSisiran}%0A` +
-                        `📸 Foto Bukti: ${foto}%0A%0A` +
-                        `*masyaAllah cantiknyaaa* ✨`;
-
-            window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+            const msg = `Laporan *KERAMAS WAPIK*%0A📅 Tanggal: ${dateStr}%0A🚿 Keramas: ${tasks.keramas ? '✅' : '❌'}%0A🪮 Sisiran: ${tasks.sisiran ? '✅' : '❌'}%0A📸 Foto: ${tasks.photo ? '✅' : '❌'}%0A%0A*Maa Syaa Allah Cantiknyaaaa* ✨`;
+            window.open(`https://wa.me/6281399649577?text=${msg}`, '_blank');
         }
 
-        // Init
-        renderCalendar();
-        updateTaskUI();
+        window.onload = async () => {
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await auth.signInWithCustomToken(__initial_auth_token);
+                    } else {
+                        await auth.signInAnonymously();
+                    }
+                } catch(e) { console.error("Auth Error:", e); }
+            };
+
+            await initAuth();
+            
+            auth.onAuthStateChanged(user => {
+                currentUser = user;
+                if (user) {
+                    renderCalendar();
+                    updateUI();
+                }
+            });
+        };
     </script>
 </body>
 </html>
