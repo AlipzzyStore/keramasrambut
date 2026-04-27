@@ -263,14 +263,23 @@
     </div>
 
     <script>
-        // --- CONFIG ---
-        const firebaseConfig = JSON.parse(__firebase_config);
-        firebase.initializeApp(firebaseConfig);
+        // --- CONFIG MANUALLY ADDED ---
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyCSsFQKckz2OXIitlyW_gylMQhBMXqTd0c",
+            authDomain: "keramasrambut.firebaseapp.com",
+            projectId: "keramasrambut",
+            storageBucket: "keramasrambut.firebasestorage.app",
+            messagingSenderId: "610427833983",
+            appId: "1:610427833983:web:61009c6a0d53b49e42394a",
+        };
+
+        // Inisialisasi Firebase menggunakan config manual Anda
+        firebase.initializeApp(myFirebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // Path mandatori sesuai aturan lingkungan
+        // Path mandatori
         const getCollectionRef = () => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs');
 
         const START_DATE = new Date(2024, 4, 1);
@@ -289,10 +298,20 @@
 
         // --- AUTH INIT ---
         async function initAuth() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await auth.signInWithCustomToken(__initial_auth_token);
-            } else {
-                await auth.signInAnonymously();
+            try {
+                // Gunakan token sistem jika ada, atau login anonim
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await auth.signInWithCustomToken(__initial_auth_token);
+                    } catch(e) {
+                        // Fallback jika mismatch
+                        await auth.signInAnonymously();
+                    }
+                } else {
+                    await auth.signInAnonymously();
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
             }
         }
 
