@@ -173,7 +173,7 @@
         <div id="main-content">
             <header class="text-center mb-10">
                 <h1 class="text-4xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">Jadwal Keramas Wapik</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 font-medium italic">"Reward cuma 1 foto setiap hari tugas keramas ya cil!"</p>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 font-medium italic">"rajiinnn rajinnnn keramas ya cil!"</p>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -209,7 +209,7 @@
                             <div onclick="toggleTask('keramas')" id="task-keramas" class="task-card flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700">
                                 <div class="flex items-center gap-4">
                                     <div class="bg-blue-500 w-10 h-10 rounded-xl flex items-center justify-center text-white"><i class="fa-solid fa-soap"></i></div>
-                                    <span class="font-bold">Sudah Keramas</span>
+                                    <span class="font-bold">uddaaa Keramas</span>
                                 </div>
                                 <div id="check-keramas" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
                                     <i class="fa-solid fa-check hidden"></i>
@@ -218,7 +218,7 @@
                             <div onclick="toggleTask('sisiran')" id="task-sisiran" class="task-card flex items-center justify-between p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-700">
                                 <div class="flex items-center gap-4">
                                     <div class="bg-pink-500 w-10 h-10 rounded-xl flex items-center justify-center text-white"><i class="fa-solid fa-scissors"></i></div>
-                                    <span class="font-bold">Sudah Sisiran</span>
+                                    <span class="font-bold">uddaaa Sisiran</span>
                                 </div>
                                 <div id="check-sisiran" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-white text-xs">
                                     <i class="fa-solid fa-check hidden"></i>
@@ -235,7 +235,7 @@
                                 </label>
                             </div>
                             <button onclick="claimReward()" id="btn-reward" class="hidden w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black rounded-2xl shadow-xl">
-                                🎁 AMBIL REWARD FOTO!
+                                🎁 REWARDS
                             </button>
                             <button onclick="sendWA()" class="w-full py-4 bg-green-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2">
                                 <i class="fa-brands fa-whatsapp"></i> Lapor ke WA
@@ -408,7 +408,7 @@
                     rewardBtn.disabled = true;
                     rewardBtn.style.opacity = "0.6";
                 } else {
-                    rewardBtn.innerText = "🎁 AMBIL REWARD FOTO!";
+                    rewardBtn.innerText = "🎁 REWARDS";
                     rewardBtn.disabled = false;
                     rewardBtn.style.opacity = "1";
                     const allDone = tasks.keramas && tasks.sisiran && tasks.photo;
