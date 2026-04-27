@@ -253,14 +253,15 @@
     </div>
 
     <script>
+        // --- KONFIGURASI ---
         const firebaseConfig = JSON.parse(__firebase_config);
-        const app = firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // Helper untuk Firestore
-        const logsRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs');
+        // Path yang benar sesuai aturan lingkungan
+        const getCollectionRef = () => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs');
 
         // --- STATE ---
         const START_DATE = new Date(2024, 4, 1);
@@ -268,7 +269,7 @@
         let viewDate = new Date();
         let selectedDate = new Date();
         let tasks = { keramas: false, sisiran: false, photo: false };
-        let userLogs = []; // Menyimpan tanggal yang sudah di-claim rewardnya
+        let userLogs = []; 
         let rewardPhotos = [
             "https://files.catbox.moe/85jalz.jpg",
             "https://files.catbox.moe/8e38tx.jpg",
@@ -277,6 +278,7 @@
         ];
         let currentRewardUrl = "";
 
+        // --- CORE LOGIC ---
         function isKeramasDay(date) {
             const d1 = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
             const d2 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -286,23 +288,33 @@
 
         async function fetchLogs() {
             if (!auth.currentUser) return;
-            const snap = await logsRef.get();
-            userLogs = snap.docs.map(doc => doc.data().date);
-            renderCalendar();
-            updateUI();
+            try {
+                const snap = await getCollectionRef().get();
+                userLogs = snap.docs.map(doc => doc.data().date);
+                renderCalendar();
+                updateUI();
+            } catch (e) {
+                console.error("Firestore Error:", e);
+                // Tetap render meskipun gagal ambil data cloud
+                renderCalendar();
+                updateUI();
+            }
         }
 
         function renderCalendar() {
             const container = document.getElementById('calendar-days');
             const label = document.getElementById('month-label');
             if(!container) return;
-            container.innerHTML = '';
             
+            container.innerHTML = '';
             label.innerText = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(viewDate);
+            
             const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
             const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
 
-            for(let i=0; i<firstDay; i++) container.appendChild(document.createElement('div'));
+            for(let i=0; i<firstDay; i++) {
+                container.appendChild(document.createElement('div'));
+            }
 
             for(let d=1; d<=daysInMonth; d++) {
                 const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
@@ -324,44 +336,53 @@
         function selectDate(date) {
             selectedDate = date;
             tasks = { keramas: false, sisiran: false, photo: false };
-            document.getElementById('photo-preview').classList.add('hidden');
-            document.getElementById('upload-placeholder').classList.remove('hidden');
-            updateUI();
+            const preview = document.getElementById('photo-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            if(preview) preview.classList.add('hidden');
+            if(placeholder) placeholder.classList.remove('hidden');
             renderCalendar();
+            updateUI();
         }
 
         function updateUI() {
             const dateStr = selectedDate.toDateString();
             const isWajib = isKeramasDay(selectedDate);
             const alreadyClaimed = userLogs.includes(dateStr);
-
-            document.getElementById('selected-date-label').innerText = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDate);
+            const label = document.getElementById('selected-date-label');
             
+            if(label) label.innerText = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDate);
+            
+            const taskArea = document.getElementById('task-area');
+            const holidayArea = document.getElementById('holiday-area');
+            const rewardBtn = document.getElementById('btn-reward');
+
             if(isWajib) {
-                document.getElementById('task-area').classList.remove('hidden');
-                document.getElementById('holiday-area').classList.add('hidden');
+                taskArea.classList.remove('hidden');
+                holidayArea.classList.add('hidden');
                 
                 if(alreadyClaimed) {
-                    document.getElementById('btn-reward').innerText = "✅ REWARD SUDAH DIAMBIL";
-                    document.getElementById('btn-reward').classList.remove('hidden', 'animate-bounce');
-                    document.getElementById('btn-reward').disabled = true;
-                    document.getElementById('btn-reward').style.opacity = "0.6";
+                    rewardBtn.innerText = "✅ REWARD SUDAH DIAMBIL";
+                    rewardBtn.classList.remove('hidden', 'animate-bounce');
+                    rewardBtn.disabled = true;
+                    rewardBtn.style.opacity = "0.6";
                 } else {
-                    document.getElementById('btn-reward').innerText = "🎁 AMBIL REWARD FOTO!";
-                    document.getElementById('btn-reward').disabled = false;
-                    document.getElementById('btn-reward').style.opacity = "1";
+                    rewardBtn.innerText = "🎁 AMBIL REWARD FOTO!";
+                    rewardBtn.disabled = false;
+                    rewardBtn.style.opacity = "1";
                     const allDone = tasks.keramas && tasks.sisiran && tasks.photo;
-                    document.getElementById('btn-reward').classList.toggle('hidden', !allDone);
-                    document.getElementById('btn-reward').classList.toggle('animate-bounce', allDone);
+                    rewardBtn.classList.toggle('hidden', !allDone);
+                    rewardBtn.classList.toggle('animate-bounce', allDone);
                 }
             } else {
-                document.getElementById('task-area').classList.add('hidden');
-                document.getElementById('holiday-area').classList.remove('hidden');
+                taskArea.classList.add('hidden');
+                holidayArea.classList.remove('hidden');
             }
 
             ['keramas', 'sisiran'].forEach(t => {
                 const card = document.getElementById(`task-${t}`);
                 const check = document.getElementById(`check-${t}`);
+                if(!card || !check) return;
+
                 if(tasks[t]) {
                     card.classList.add('task-checked');
                     check.classList.replace('border-slate-300', 'bg-green-500');
@@ -386,8 +407,9 @@
             if(file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    document.getElementById('photo-preview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
-                    document.getElementById('photo-preview').classList.remove('hidden');
+                    const preview = document.getElementById('photo-preview');
+                    preview.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
+                    preview.classList.remove('hidden');
                     document.getElementById('upload-placeholder').classList.add('hidden');
                     tasks.photo = true;
                     updateUI();
@@ -400,19 +422,16 @@
             const todayStr = new Date().toDateString();
             const selectedStr = selectedDate.toDateString();
             
-            // CEK ANTI CURANG 1: Harus hari ini
             if(selectedStr !== todayStr) {
                 showAlert("Gaboleh ambil reward buat tanggal lain! Harus jujur sesuai hari ini ya cil.", "🤨");
                 return;
             }
 
-            // CEK ANTI CURANG 2: Belum pernah ambil
             if(userLogs.includes(selectedStr)) {
                 showAlert("Kamu kan udah ambil jatah foto hari ini. Cuma boleh 1 foto setiap hari tugas keramas!", "😤");
                 return;
             }
 
-            // Pilih foto acak untuk hari ini
             const randomPhoto = rewardPhotos[Math.floor(Math.random() * rewardPhotos.length)];
             currentRewardUrl = randomPhoto;
             
@@ -420,16 +439,17 @@
             document.getElementById('reward-note').innerText = "Selamat! Ini reward spesial buat Wapik yang rajin keramas hari ini.";
             document.getElementById('reward-modal').style.display = 'flex';
             
-            // Simpan ke Firestore agar tidak bisa ambil lagi
             try {
-                await logsRef.add({
+                await getCollectionRef().add({
                     date: selectedStr,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 userLogs.push(selectedStr);
                 renderCalendar();
                 updateUI();
-            } catch(e) { console.error("Gagal simpan log:", e); }
+            } catch(e) { 
+                console.error("Gagal simpan log:", e); 
+            }
         }
 
         async function downloadImage() {
@@ -463,15 +483,20 @@
         }
         
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             const isD = document.documentElement.classList.contains('dark');
             document.getElementById('theme-icon').className = isD ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }
-        function changeMonth(d) { viewDate.setMonth(viewDate.getMonth() + d); renderCalendar(); }
+        
+        function changeMonth(d) { 
+            viewDate.setMonth(viewDate.getMonth() + d); 
+            renderCalendar(); 
+        }
 
-        // ADMIN FUNCTIONS
         function openAdmin() { document.getElementById('admin-login-modal').style.display = 'flex'; }
+        
         function checkAdmin() {
             if(document.getElementById('admin-pass').value === ADMIN_PIN) {
                 closeModal('admin-login-modal');
@@ -480,22 +505,28 @@
                 loadAdminLogs();
             } else { alert("PIN Salah!"); }
         }
+        
         function closeAdmin() {
             document.getElementById('admin-view').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
         }
+        
         async function loadAdminLogs() {
             const list = document.getElementById('admin-status-list');
             list.innerHTML = 'Memuat...';
-            const snap = await logsRef.get();
-            list.innerHTML = '';
-            snap.docs.forEach(doc => {
-                const d = doc.data();
-                const div = document.createElement('div');
-                div.className = "p-3 bg-slate-50 dark:bg-slate-700 rounded-xl flex justify-between";
-                div.innerHTML = `<span>📅 ${d.date}</span> <span class="text-green-500 font-bold">REWARD DIAMBIL</span>`;
-                list.appendChild(div);
-            });
+            try {
+                const snap = await getCollectionRef().get();
+                list.innerHTML = '';
+                snap.docs.forEach(doc => {
+                    const d = doc.data();
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-50 dark:bg-slate-700 rounded-xl flex justify-between";
+                    div.innerHTML = `<span>📅 ${d.date}</span> <span class="text-green-500 font-bold">REWARD DIAMBIL</span>`;
+                    list.appendChild(div);
+                });
+            } catch (e) {
+                list.innerHTML = 'Gagal memuat data.';
+            }
         }
 
         function sendWA() {
@@ -504,13 +535,28 @@
             window.open(`https://wa.me/6281399649577?text=${msg}`, '_blank');
         }
 
+        // --- INITIALIZATION ---
         window.onload = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await auth.signInWithCustomToken(__initial_auth_token);
-            } else {
-                await auth.signInAnonymously();
-            }
-            fetchLogs();
+            // Pasikan Auth Listener siap
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    await fetchLogs();
+                } else {
+                    // Coba login jika belum ada user
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await auth.signInWithCustomToken(__initial_auth_token);
+                        } else {
+                            await auth.signInAnonymously();
+                        }
+                    } catch (err) {
+                        console.error("Auth Fail:", err);
+                        // Render fallback jika auth gagal total
+                        renderCalendar();
+                        updateUI();
+                    }
+                }
+            });
         };
     </script>
 </body>
