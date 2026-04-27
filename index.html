@@ -6,9 +6,12 @@
     <title>Jadwal Keramas Wapik - Reward Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK Compat Mode -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         
@@ -100,7 +103,8 @@
         }
 
         .reward-img {
-            max-height: 60vh;
+            max-height: 50vh;
+            width: auto;
             border-radius: 20px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
@@ -122,7 +126,7 @@
     <!-- Modal Login Admin -->
     <div id="admin-login-modal" class="modal">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4">
-            <h2 class="text-xl font-bold mb-4 text-slate-800 dark:text-white">Akses Admin</h2>
+            <h2 class="text-xl font-bold mb-4">Akses Admin</h2>
             <input type="password" id="admin-pass" placeholder="PIN Admin" class="w-full p-3 rounded-xl border dark:border-slate-600 dark:bg-slate-700 mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
             <div class="flex gap-2">
                 <button onclick="closeModal('admin-login-modal')" class="flex-1 py-2 text-slate-500 font-semibold">Batal</button>
@@ -131,11 +135,11 @@
         </div>
     </div>
 
-    <!-- Modal Alert Anti-Curang -->
+    <!-- Modal Alert -->
     <div id="alert-modal" class="modal">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4">
             <div id="alert-emoji" class="text-5xl mb-4">🤨</div>
-            <p id="alert-text" class="text-lg font-bold text-slate-700 dark:text-white leading-relaxed"></p>
+            <p id="alert-text" class="text-lg font-bold leading-relaxed"></p>
             <button onclick="closeModal('alert-modal')" class="mt-6 px-8 py-3 bg-red-500 text-white rounded-full font-bold">Oke Maaf</button>
         </div>
     </div>
@@ -186,7 +190,13 @@
                     </div>
                     <div id="month-label" class="text-center font-bold mb-4 text-blue-700 dark:text-blue-400 uppercase tracking-wider"></div>
                     <div class="calendar-grid text-center mb-2">
-                        <div class="text-xs font-bold text-slate-400">MIN</div><div class="text-xs font-bold text-slate-400">SEN</div><div class="text-xs font-bold text-slate-400">SEL</div><div class="text-xs font-bold text-slate-400">RAB</div><div class="text-xs font-bold text-slate-400">KAM</div><div class="text-xs font-bold text-slate-400">JUM</div><div class="text-xs font-bold text-slate-400">SAB</div>
+                        <div class="text-xs font-bold text-slate-400">MIN</div>
+                        <div class="text-xs font-bold text-slate-400">SEN</div>
+                        <div class="text-xs font-bold text-slate-400">SEL</div>
+                        <div class="text-xs font-bold text-slate-400">RAB</div>
+                        <div class="text-xs font-bold text-slate-400">KAM</div>
+                        <div class="text-xs font-bold text-slate-400">JUM</div>
+                        <div class="text-xs font-bold text-slate-400">SAB</div>
                     </div>
                     <div id="calendar-days" class="calendar-grid"></div>
                 </section>
@@ -221,10 +231,10 @@
                                         <i class="fa-solid fa-camera text-slate-400 mb-1"></i>
                                         <p class="text-xs font-bold text-slate-500">UPLOAD BUKTI</p>
                                     </div>
-                                    <input type="file" accept="image/*" class="hidden" onchange="handleImage(event)">
+                                    <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handleImage(event)">
                                 </label>
                             </div>
-                            <button onclick="claimReward()" id="btn-reward" class="hidden w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black rounded-2xl shadow-xl animate-bounce">
+                            <button onclick="claimReward()" id="btn-reward" class="hidden w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black rounded-2xl shadow-xl">
                                 🎁 AMBIL REWARD FOTO!
                             </button>
                             <button onclick="sendWA()" class="w-full py-4 bg-green-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2">
@@ -253,17 +263,16 @@
     </div>
 
     <script>
-        // --- KONFIGURASI ---
+        // --- CONFIG ---
         const firebaseConfig = JSON.parse(__firebase_config);
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // Path yang benar sesuai aturan lingkungan
+        // Path mandatori sesuai aturan lingkungan
         const getCollectionRef = () => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs');
 
-        // --- STATE ---
         const START_DATE = new Date(2024, 4, 1);
         const ADMIN_PIN = "1945201011121314"; 
         let viewDate = new Date();
@@ -277,6 +286,21 @@
             "https://files.catbox.moe/2qyvyg.jpg"
         ];
         let currentRewardUrl = "";
+
+        // --- AUTH INIT ---
+        async function initAuth() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await auth.signInWithCustomToken(__initial_auth_token);
+            } else {
+                await auth.signInAnonymously();
+            }
+        }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await fetchLogs();
+            }
+        });
 
         // --- CORE LOGIC ---
         function isKeramasDay(date) {
@@ -295,7 +319,6 @@
                 updateUI();
             } catch (e) {
                 console.error("Firestore Error:", e);
-                // Tetap render meskipun gagal ambil data cloud
                 renderCalendar();
                 updateUI();
             }
@@ -361,7 +384,7 @@
                 holidayArea.classList.add('hidden');
                 
                 if(alreadyClaimed) {
-                    rewardBtn.innerText = "✅ REWARD SUDAH DIAMBIL";
+                    rewardBtn.innerText = "✅ REWARD DIAMBIL";
                     rewardBtn.classList.remove('hidden', 'animate-bounce');
                     rewardBtn.disabled = true;
                     rewardBtn.style.opacity = "0.6";
@@ -419,6 +442,7 @@
         }
 
         async function claimReward() {
+            if (!auth.currentUser) return;
             const todayStr = new Date().toDateString();
             const selectedStr = selectedDate.toDateString();
             
@@ -428,7 +452,7 @@
             }
 
             if(userLogs.includes(selectedStr)) {
-                showAlert("Kamu kan udah ambil jatah foto hari ini. Cuma boleh 1 foto setiap hari tugas keramas!", "😤");
+                showAlert("Kamu kan udah ambil jatah foto hari ini. Cuma boleh 1 foto!", "😤");
                 return;
             }
 
@@ -436,7 +460,7 @@
             currentRewardUrl = randomPhoto;
             
             document.getElementById('reward-display').src = randomPhoto;
-            document.getElementById('reward-note').innerText = "Selamat! Ini reward spesial buat Wapik yang rajin keramas hari ini.";
+            document.getElementById('reward-note').innerText = "Selamat! Ini reward spesial buat Wapik yang rajin keramas.";
             document.getElementById('reward-modal').style.display = 'flex';
             
             try {
@@ -535,28 +559,9 @@
             window.open(`https://wa.me/6281399649577?text=${msg}`, '_blank');
         }
 
-        // --- INITIALIZATION ---
-        window.onload = async () => {
-            // Pasikan Auth Listener siap
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    await fetchLogs();
-                } else {
-                    // Coba login jika belum ada user
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await auth.signInWithCustomToken(__initial_auth_token);
-                        } else {
-                            await auth.signInAnonymously();
-                        }
-                    } catch (err) {
-                        console.error("Auth Fail:", err);
-                        // Render fallback jika auth gagal total
-                        renderCalendar();
-                        updateUI();
-                    }
-                }
-            });
+        window.onload = () => {
+            initAuth();
+            renderCalendar();
         };
     </script>
 </body>
