@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keramas Wafiq</title>
+    <title>Jadwal Keramas</title>
     <style>
         * {
             margin: 0;
@@ -11,26 +11,25 @@
             box-sizing: border-box;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        @keyframes floatBg {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-50px, -50px) scale(1.05); }
+            50% { transform: translate(50px, 0) scale(1); }
+            75% { transform: translate(-30px, 50px) scale(1.02); }
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
+        @keyframes morphCircles {
+            0%, 100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+            20% { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; }
+            40% { border-radius: 40% 30% 60% 70%/30% 60% 70% 40%; }
+            60% { border-radius: 70% 40% 30% 60%/40% 70% 30% 60%; }
+            80% { border-radius: 30% 70% 40% 60%/70% 40% 60% 30%; }
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @keyframes slideIn {
+        @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(-30px);
             }
             to {
                 opacity: 1;
@@ -38,9 +37,30 @@
             }
         }
 
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
         @keyframes shimmer {
             0% { background-position: -1000px 0; }
             100% { background-position: 1000px 0; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3), inset 0 0 20px rgba(102, 126, 234, 0.1); }
+            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.5), inset 0 0 30px rgba(102, 126, 234, 0.2); }
         }
 
         @keyframes notifSlide {
@@ -64,30 +84,100 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: #0f0f1e;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
+            background-size: 400% 400%;
+            animation: floatBg 20s ease infinite;
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: floatBg 30s ease-in-out infinite reverse;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Floating Shapes */
+        .bg-shape {
+            position: fixed;
+            opacity: 0.1;
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        .shape1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: 10%;
+            left: 10%;
+            animation: morphCircles 15s ease-in-out infinite, floatBg 20s ease infinite;
+            border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+
+        .shape2 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            top: 50%;
+            right: 10%;
+            animation: morphCircles 18s ease-in-out infinite 2s, floatBg 25s ease infinite;
+            border-radius: 30% 60% 70% 40%/50% 60% 30% 60%;
+        }
+
+        .shape3 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            bottom: 15%;
+            left: 50%;
+            animation: morphCircles 20s ease-in-out infinite 4s, floatBg 30s ease infinite;
+            border-radius: 40% 30% 60% 70%/30% 60% 70% 40%;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 550px;
+            background: rgba(20, 20, 35, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 
+                        0 0 100px rgba(102, 126, 234, 0.1),
+                        inset 0 0 20px rgba(102, 126, 234, 0.05);
             overflow: hidden;
-            animation: slideIn 0.6s ease;
+            animation: slideUp 0.8s ease;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding: 35px 25px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -96,45 +186,52 @@
         .header::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
+            top: 0;
+            left: -100%;
             width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-            animation: float 20s ease-in-out infinite;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
         }
 
         .header h1 {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
             position: relative;
             z-index: 1;
-            font-size: 28px;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
             position: relative;
             z-index: 1;
-            font-size: 13px;
-            opacity: 0.9;
+            letter-spacing: 1px;
         }
 
         .content {
-            padding: 30px 20px;
+            padding: 35px 25px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
             font-size: 14px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
         }
 
         input[type="text"],
@@ -143,12 +240,19 @@
         input[type="file"],
         textarea {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 14px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
             font-size: 14px;
             transition: all 0.3s ease;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: rgba(102, 126, 234, 0.05);
+            color: #fff;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         input[type="text"]:focus,
@@ -158,46 +262,65 @@
         textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
         }
 
         .btn {
             width: 100%;
-            padding: 13px;
+            padding: 14px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
         .btn-primary:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
             margin-top: 10px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid rgba(102, 126, 234, 0.3);
         }
 
         .btn-secondary:hover {
-            background: #e0e0e0;
+            background: rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
         }
 
         .btn-danger {
@@ -224,126 +347,143 @@
 
         .toggle-link {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 18px;
             color: #667eea;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            transition: all 0.3s ease;
         }
 
         .toggle-link:hover {
             text-decoration: underline;
+            color: #764ba2;
         }
 
-        /* Dashboard Styles */
+        /* Dashboard */
         .dashboard-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            padding: 22px;
+            border-radius: 16px;
+            margin-bottom: 22px;
             text-align: center;
+            animation: glow 3s ease-in-out infinite;
         }
 
         .user-info {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             margin-bottom: 10px;
-            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
         }
 
         .last-wash-info {
             font-size: 13px;
-            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.6);
         }
 
         .schedule-box {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border: 2px solid #667eea;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 22px;
             text-align: center;
+            animation: slideDown 0.8s ease 0.2s both;
         }
 
         .schedule-title {
-            color: #667eea;
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
             font-weight: 700;
         }
 
         .schedule-date {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
         }
 
-        .schedule-status {
+        .countdown {
             font-size: 14px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
-            margin-top: 10px;
-            letter-spacing: 0.5px;
+            margin-top: 12px;
+            letter-spacing: 1px;
             text-transform: uppercase;
         }
 
         .status-pending {
-            background: linear-gradient(135deg, #fff5e6, #ffe8cc);
-            color: #cc7a00;
-            border: 2px solid #ffb84d;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.5);
         }
 
         .status-done {
-            background: linear-gradient(135deg, #e6f7ff, #cce9ff);
-            color: #0066cc;
-            border: 2px solid #4daaff;
+            background: rgba(79, 172, 254, 0.2);
+            color: #4facfe;
+            border: 1px solid rgba(79, 172, 254, 0.5);
         }
 
         .upload-section {
             background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
-            border: 2px dashed #4facfe;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 2px dashed rgba(79, 172, 254, 0.5);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 22px;
             text-align: center;
+            animation: slideDown 0.8s ease 0.4s both;
         }
 
         .upload-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
         }
 
         .upload-text {
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            margin-bottom: 12px;
         }
 
         .file-label {
             display: inline-block;
             margin-top: 15px;
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 700;
             transition: all 0.3s ease;
+            letter-spacing: 1px;
         }
 
         .file-label:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
         }
 
         input[type="file"] {
@@ -352,16 +492,18 @@
 
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            top: 25px;
+            right: 25px;
+            background: rgba(20, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             max-width: 350px;
             animation: notifSlide 5s ease-out forwards;
             z-index: 1000;
             border-left: 5px solid #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.3);
         }
 
         .notification.success {
@@ -373,45 +515,153 @@
         }
 
         .notification-title {
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: #333;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .notification-message {
             font-size: 13px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        /* Admin Panel Styles */
-        .admin-container {
-            max-width: 800px;
+        .reward-display {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
+            border: 2px solid rgba(79, 172, 254, 0.3);
+            border-radius: 16px;
+            margin-bottom: 22px;
+            animation: slideDown 0.8s ease 0.3s both;
+        }
+
+        .reward-image {
+            width: 220px;
+            height: 220px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin: 0 auto 16px;
+            box-shadow: 0 15px 35px rgba(79, 172, 254, 0.3), inset 0 0 20px rgba(79, 172, 254, 0.1);
+            border: 2px solid rgba(79, 172, 254, 0.5);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        .reward-text {
+            font-size: 18px;
+            color: #fff;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .reward-subtext {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+        }
+
+        .letter {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border: 2px solid rgba(240, 147, 251, 0.3);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 22px;
+            animation: slideDown 0.8s ease 0.5s both;
+        }
+
+        .letter-title {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .letter-sender {
+            color: #f093fb;
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .letter-message {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            animation: slideDown 0.8s ease forwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.2s; }
+        .stat-card:nth-child(2) { animation-delay: 0.3s; }
+        .stat-card:nth-child(3) { animation-delay: 0.4s; }
+        .stat-card:nth-child(4) { animation-delay: 0.5s; }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .admin-nav {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 22px;
             flex-wrap: wrap;
         }
 
         .admin-nav button {
             flex: 1;
-            min-width: 120px;
+            min-width: 100px;
             padding: 12px;
-            border: 2px solid #e0e0e0;
-            background: white;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             cursor: pointer;
             font-weight: 700;
             transition: all 0.3s ease;
-            font-size: 13px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
 
         .admin-nav button.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: #667eea;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
         .admin-section {
@@ -420,25 +670,25 @@
 
         .admin-section.active {
             display: block;
-            animation: slideIn 0.4s ease;
+            animation: slideUp 0.4s ease;
         }
 
         .photo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
         }
 
         .photo-item {
             position: relative;
             aspect-ratio: 1;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            background: #f0f0f0;
+            background: rgba(102, 126, 234, 0.1);
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid #e0e0e0;
+            border: 2px solid rgba(102, 126, 234, 0.2);
         }
 
         .photo-item img {
@@ -448,344 +698,17 @@
         }
 
         .photo-item:hover {
-            transform: scale(1.05);
+            transform: scale(1.08);
             border-color: #667eea;
-        }
-
-        .photo-item.placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: #ccc;
-        }
-
-        .photo-item-delete {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #f5576c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .photo-item:hover .photo-item-delete {
-            opacity: 1;
-        }
-
-        .user-list {
-            background: #f9f9f9;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .user-item {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-name {
-            font-weight: 700;
-            color: #333;
-        }
-
-        .user-status {
-            font-size: 13px;
-            color: #666;
-        }
-
-        .user-action {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideIn 0.3s ease;
-        }
-
-        .modal-header {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .message-box {
-            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
-            border: 2px solid #f093fb;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .message-label {
-            color: #f5576c;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .reward-display {
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .reward-image {
-            width: 200px;
-            height: 200px;
-            border-radius: 15px;
-            object-fit: cover;
-            margin-bottom: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 3px solid white;
-        }
-
-        .reward-text {
-            font-size: 16px;
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .reward-subtext {
-            font-size: 13px;
-            color: #666;
-        }
-
-        .letter {
-            background: linear-gradient(135deg, rgba(240, 147, 251, 0.15), rgba(245, 87, 108, 0.15));
-            border: 2px solid #f093fb;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .letter::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(240, 147, 251, 0.05) 10px,
-                rgba(240, 147, 251, 0.05) 20px
-            );
-            animation: float 20s ease-in-out infinite;
-        }
-
-        .letter-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .letter-title {
-            color: #f5576c;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .letter-sender {
-            color: #764ba2;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .letter-message {
-            color: #333;
-            font-size: 14px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        .logout-btn {
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                max-width: 100%;
-                border-radius: 15px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            .admin-nav button {
-                font-size: 12px;
-                padding: 10px;
-            }
-
-            .photo-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 10px;
-            }
-
-            .modal-content {
-                max-width: 95%;
-                padding: 20px;
-            }
-
-            .notification {
-                right: 10px;
-                left: 10px;
-                max-width: none;
-            }
-
-            .user-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .user-action {
-                width: 100%;
-            }
-        }
-
-        .reward-claim-msg {
-            text-align: center;
-            font-size: 16px;
-            color: #764ba2;
-            font-weight: 700;
-            margin-top: 15px;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .countdown {
-            font-size: 13px;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border: 2px solid #667eea;
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #667eea;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
         .proof-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
-            margin-bottom: 20px;
-            max-height: 300px;
+            margin-bottom: 22px;
+            max-height: 350px;
             overflow-y: auto;
         }
 
@@ -794,8 +717,9 @@
             border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
-            border: 2px solid #e0e0e0;
+            border: 2px solid rgba(102, 126, 234, 0.2);
             transition: all 0.3s ease;
+            background: rgba(102, 126, 234, 0.1);
         }
 
         .proof-item img {
@@ -809,40 +733,289 @@
             transform: scale(1.05);
         }
 
-        .proof-meta {
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 35, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-box {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border: 2px solid rgba(240, 147, 251, 0.3);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .message-label {
+            color: rgba(255, 255, 255, 0.7);
             font-size: 12px;
-            color: #666;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .real-time-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #4facfe;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .real-time-text {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            margin-top: 22px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 20px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .content {
+                padding: 25px;
+            }
+
+            .header {
+                padding: 25px 20px;
+            }
+
+            .admin-nav button {
+                font-size: 11px;
+                padding: 10px;
+            }
+
+            .schedule-date {
+                font-size: 24px;
+            }
+
+            .photo-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .notification {
+                right: 15px;
+                left: 15px;
+                max-width: none;
+            }
+
+            .reward-image {
+                width: 150px;
+                height: 150px;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .proof-meta {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
             text-align: center;
             padding: 8px;
-            background: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .waiting-status {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border-radius: 16px;
+            border: 2px solid rgba(240, 147, 251, 0.3);
+            animation: slideDown 0.8s ease 0.3s both;
+        }
+
+        .waiting-status-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .waiting-status-title {
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .waiting-status-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        .completed-status {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1));
+            border-radius: 16px;
+            border: 2px solid rgba(79, 172, 254, 0.3);
+            animation: slideDown 0.8s ease 0.3s both;
+        }
+
+        .completed-status-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .completed-status-title {
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .completed-status-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        .admin-container {
+            max-width: 100%;
+        }
+
+        .user-list {
+            background: rgba(102, 126, 234, 0.05);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .user-item {
+            padding: 14px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-name {
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .real-time-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
         }
     </style>
 </head>
 <body>
+    <!-- Animated Background Shapes -->
+    <div class="bg-shape shape1"></div>
+    <div class="bg-shape shape2"></div>
+    <div class="bg-shape shape3"></div>
+
     <div class="container" id="app">
-        <!-- Login/Register Screen -->
+        <!-- Auth Screen -->
         <div id="authScreen" class="auth-screen">
             <div class="header">
-                <h1>» Keramas Wafiq «</h1>
-                <p>untuk Wafiq yang cantik</p>
+                <h1>JADWAL KERAMAS</h1>
+                <p>✦ untuk Wafiq yang cantik ✦</p>
             </div>
             <div class="content">
-                <!-- Login Form -->
                 <div id="loginForm">
                     <div class="form-group">
                         <label>• USERNAME</label>
-                        <input type="text" id="loginUsername" placeholder="masukkan username kamu">
+                        <input type="text" id="loginUsername" placeholder="username kamu">
                     </div>
                     <div class="form-group">
                         <label>• PASSWORD</label>
-                        <input type="password" id="loginPassword" placeholder="masukkan password kamu">
+                        <input type="password" id="loginPassword" placeholder="password kamu">
                     </div>
-                    <button class="btn btn-primary" onclick="handleLogin()">+ MASUK</button>
-                    <div class="toggle-link" onclick="toggleAuthForm()">belum punya akun ? daftar di sini sayangggg</div>
+                    <button class="btn btn-primary" onclick="handleLogin()">→ MASUK</button>
+                    <div class="toggle-link" onclick="toggleAuthForm()">belum punya akun ? daftar di sini</div>
                 </div>
 
-                <!-- Register Form -->
                 <div id="registerForm" style="display: none;">
                     <div class="form-group">
                         <label>• NAMA LENGKAP</label>
@@ -856,8 +1029,8 @@
                         <label>• PASSWORD</label>
                         <input type="password" id="regPassword" placeholder="buat password">
                     </div>
-                    <button class="btn btn-primary" onclick="handleRegister()">+ DAFTAR</button>
-                    <div class="toggle-link" onclick="toggleAuthForm()">sudah punya akun ? login di sini sayanggg</div>
+                    <button class="btn btn-primary" onclick="handleRegister()">→ DAFTAR</button>
+                    <div class="toggle-link" onclick="toggleAuthForm()">sudah punya akun ? login di sini</div>
                 </div>
             </div>
         </div>
@@ -865,37 +1038,41 @@
         <!-- Dashboard Screen -->
         <div id="dashboardScreen" style="display: none;">
             <div class="header">
-                <h1>» KERAMAS WAFIQ CANTIIKKU «</h1>
-                <p>untuk Wafiq yang cantik</p>
+                <h1>JADWAL KERAMAS</h1>
+                <p>✦ untuk Wafiq yang cantik ✦</p>
             </div>
             <div class="content">
                 <div class="dashboard-header">
                     <div class="user-info">» <span id="dashUserName">Loading</span></div>
-                    <div class="last-wash-info" id="lastWashInfo">belum ada data keramas</div>
+                    <div class="last-wash-info" id="lastWashInfo">belum ada data</div>
+                    <div class="real-time-status">
+                        <span class="real-time-indicator"></span>
+                        <span class="real-time-text">REAL-TIME TRACKING</span>
+                    </div>
                 </div>
 
                 <div class="schedule-box">
                     <div class="schedule-title">» JADWAL KERAMAS BERIKUTNYA</div>
                     <div class="schedule-date" id="nextWashDate">--</div>
-                    <div class="schedule-status" id="scheduleStatus">hitung mundur</div>
+                    <div class="countdown" id="countdownText">hitung mundur</div>
                 </div>
 
-                <!-- Notifications Letter -->
+                <!-- Notifications -->
                 <div id="notificationLetters"></div>
 
-                <!-- Keramas Proof Upload -->
+                <!-- Upload Section -->
                 <div id="uploadSection" style="display: none;">
                     <div class="upload-section">
-                        <div class="upload-icon">↓ KERAMAS.JPG</div>
+                        <div class="upload-icon">📸</div>
                         <div class="upload-text">upload bukti keramas kamu hari ini</div>
                         <label class="file-label">
                             ⊕ PILIH FOTO
                             <input type="file" id="proofImage" accept="image/*" onchange="previewProof()">
                         </label>
                     </div>
-                    <div id="proofPreview" style="display: none; text-align: center; margin-bottom: 20px;">
-                        <img id="previewImg" style="max-width: 100%; border-radius: 10px; margin-bottom: 10px;">
-                        <button class="btn btn-success" onclick="submitProof()">◆ SUBMIT BUKTI</button>
+                    <div id="proofPreview" style="display: none; text-align: center; margin-bottom: 22px;">
+                        <img id="previewImg" style="max-width: 100%; border-radius: 12px; margin-bottom: 12px; max-height: 250px;">
+                        <button class="btn btn-success" onclick="submitProof()">✓ SUBMIT</button>
                         <button class="btn btn-secondary" onclick="cancelPreview()">✕ BATAL</button>
                     </div>
                 </div>
@@ -905,18 +1082,18 @@
                     <div class="reward-display" id="rewardDisplay"></div>
                 </div>
 
-                <!-- Already Submitted Today -->
-                <div id="alreadySubmitted" style="display: none; text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.1)); border-radius: 15px; border: 2px solid #4facfe;">
-                    <div style="font-size: 40px; margin-bottom: 10px;">✓ KERAMAS.DONE</div>
-                    <div style="color: #333; font-weight: 700; font-size: 16px;">sudah submit bukti hari ini</div>
-                    <div style="color: #666; font-size: 13px; margin-top: 10px;">reward sudah diambil, tunggu keramas berikutnya</div>
+                <!-- Waiting Status -->
+                <div id="waitingAdmin" style="display: none;" class="waiting-status">
+                    <div class="waiting-status-icon">⧗</div>
+                    <div class="waiting-status-title">PROSES VERIFIKASI</div>
+                    <div class="waiting-status-text">admin sedang cek bukti keramas kamu</div>
                 </div>
 
-                <!-- Waiting for Admin Decision -->
-                <div id="waitingAdmin" style="display: none; text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1)); border-radius: 15px; border: 2px solid #f093fb;">
-                    <div style="font-size: 40px; margin-bottom: 10px;">⧗ PENDING</div>
-                    <div style="color: #333; font-weight: 700; font-size: 16px;">bukti keramas sedang diperiksa</div>
-                    <div style="color: #666; font-size: 13px; margin-top: 10px;">admin sedang verifikasi, tunggu sebentar ya</div>
+                <!-- Completed Status -->
+                <div id="alreadySubmitted" style="display: none;" class="completed-status">
+                    <div class="completed-status-icon">✓</div>
+                    <div class="completed-status-title">SUDAH SUBMIT</div>
+                    <div class="completed-status-text">reward sudah diambil, tunggu keramas berikutnya</div>
                 </div>
 
                 <!-- Stats -->
@@ -938,15 +1115,15 @@
         <!-- Admin Panel -->
         <div id="adminScreen" style="display: none;">
             <div class="header">
-                <h1>» ADMIN PANEL «</h1>
-                <p>Alip Ganteng Control Center</p>
+                <h1>ADMIN PANEL</h1>
+                <p>✦ Alip Ganteng Control Center ✦</p>
             </div>
             <div class="content admin-container">
                 <div class="admin-nav">
-                    <button class="active" onclick="switchAdminTab('dashboard')">» DASHBOARD</button>
-                    <button onclick="switchAdminTab('photos')">» FOTO REWARD</button>
-                    <button onclick="switchAdminTab('proofs')">» VERIFIKASI</button>
-                    <button onclick="switchAdminTab('broadcast')">» BROADCAST</button>
+                    <button class="active" onclick="switchAdminTab('dashboard')">DASHBOARD</button>
+                    <button onclick="switchAdminTab('photos')">FOTO REWARD</button>
+                    <button onclick="switchAdminTab('proofs')">VERIFIKASI</button>
+                    <button onclick="switchAdminTab('broadcast')">BROADCAST</button>
                 </div>
 
                 <!-- Dashboard Tab -->
@@ -957,51 +1134,50 @@
                             <div class="stat-value" id="totalUsers">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">» FOTO TERSEDIA</div>
+                            <div class="stat-label">» FOTO READY</div>
                             <div class="stat-value" id="totalPhotos">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">» BUKTI PENDING</div>
+                            <div class="stat-label">» PENDING</div>
                             <div class="stat-value" id="pendingProofs">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">» BUKTI VERIFIED</div>
+                            <div class="stat-label">» VERIFIED</div>
                             <div class="stat-value" id="verifiedProofs">0</div>
                         </div>
                     </div>
-
                     <div class="user-list" id="userListAdmin"></div>
                 </div>
 
                 <!-- Photos Tab -->
                 <div id="adminPhotos" class="admin-section">
                     <div class="upload-section">
-                        <div class="upload-icon">⊕ REWARD FOTO</div>
-                        <div class="upload-text">upload foto untuk reward</div>
+                        <div class="upload-icon">⊕</div>
+                        <div class="upload-text">upload foto reward untuk Wafiq</div>
                         <label class="file-label">
                             ↑ UPLOAD FOTO
                             <input type="file" id="adminPhotoInput" accept="image/*" onchange="previewAdminPhoto()">
                         </label>
                     </div>
-                    <div id="adminPhotoPreview" style="display: none; text-align: center; margin-bottom: 20px;">
-                        <img id="adminPreviewImg" style="max-width: 200px; border-radius: 10px; margin-bottom: 10px;">
-                        <button class="btn btn-success" onclick="uploadRewardPhoto()">✓ SIMPAN FOTO</button>
+                    <div id="adminPhotoPreview" style="display: none; text-align: center; margin-bottom: 22px;">
+                        <img id="adminPreviewImg" style="max-width: 200px; border-radius: 12px; margin-bottom: 12px;">
+                        <button class="btn btn-success" onclick="uploadRewardPhoto()">✓ SIMPAN</button>
                         <button class="btn btn-secondary" onclick="cancelAdminPreview()">✕ BATAL</button>
                     </div>
-                    <label style="display: block; margin-bottom: 10px; font-weight: 700; color: #667eea;">» FOTO REWARD YANG TERSEDIA</label>
+                    <label style="display: block; margin-bottom: 12px; font-weight: 700; color: rgba(255,255,255,0.8);">» FOTO REWARD YANG TERSEDIA</label>
                     <div class="photo-grid" id="rewardPhotosGrid"></div>
                 </div>
 
                 <!-- Proofs Tab -->
                 <div id="adminProofs" class="admin-section">
-                    <label style="display: block; margin-bottom: 15px; font-weight: 700; color: #667eea;">» BUKTI KERAMAS PENDING</label>
+                    <label style="display: block; margin-bottom: 16px; font-weight: 700; color: rgba(255,255,255,0.8);">» BUKTI KERAMAS PENDING</label>
                     <div id="proofsListAdmin"></div>
                 </div>
 
                 <!-- Broadcast Tab -->
                 <div id="adminBroadcast" class="admin-section">
                     <div class="message-box">
-                        <div class="message-label">» KIRIM PESAN UNTUK WAFIQ</div>
+                        <label class="message-label">» KIRIM PESAN UNTUK WAFIQ</label>
                         <textarea id="broadcastMessage" placeholder="tulis pesan kamu di sini..."></textarea>
                     </div>
                     <button class="btn btn-primary" onclick="sendBroadcast()">✉ KIRIM BROADCAST</button>
@@ -1021,8 +1197,12 @@
     </div>
 
     <script>
-        // ===== STORAGE & DATA MANAGEMENT =====
+        // ===== CONFIGURATION =====
         const WASH_INTERVAL = 3; // days
+        const REAL_TIME_UPDATE_INTERVAL = 1000; // 1 detik
+        const SESSION_KEY = 'keramasSession';
+        const DATA_KEY = 'keramasData';
+
         const DEFAULT_DATA = {
             users: {
                 'wafiq': {
@@ -1047,14 +1227,39 @@
         };
 
         let currentUser = null;
-        let appData = JSON.parse(localStorage.getItem('keramasData')) || DEFAULT_DATA;
+        let appData = JSON.parse(localStorage.getItem(DATA_KEY)) || DEFAULT_DATA;
+        let realTimeUpdateTimer = null;
 
-        // Save data to local storage
+        // ===== SAVE & RESTORE =====
         function saveData() {
-            localStorage.setItem('keramasData', JSON.stringify(appData));
+            localStorage.setItem(DATA_KEY, JSON.stringify(appData));
         }
 
-        // ===== AUTHENTICATION =====
+        function saveSession(user) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+        }
+
+        function getSession() {
+            return JSON.parse(localStorage.getItem(SESSION_KEY));
+        }
+
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const session = getSession();
+            if (session && appData.users[session.username]) {
+                currentUser = session;
+                showScreen(session.role === 'admin' ? 'admin' : 'dashboard');
+                startRealTimeUpdate();
+            } else {
+                showScreen('auth');
+            }
+        });
+
+        // ===== AUTH =====
         function toggleAuthForm() {
             document.getElementById('loginForm').style.display = 
                 document.getElementById('loginForm').style.display === 'none' ? 'block' : 'none';
@@ -1083,8 +1288,10 @@
                 role: user.role
             };
 
+            saveSession(currentUser);
             showNotification('SUCCESS', `selamat datang ${user.name}!`, 'success');
             showScreen(user.role === 'admin' ? 'admin' : 'dashboard');
+            startRealTimeUpdate();
             clearAuthForms();
         }
 
@@ -1114,13 +1321,24 @@
             };
 
             saveData();
-            showNotification('SUCCESS', 'akun berhasil dibuat, silakan login', 'success');
-            toggleAuthForm();
+
+            currentUser = {
+                username: username,
+                name: name,
+                role: 'user'
+            };
+
+            saveSession(currentUser);
+            showNotification('SUCCESS', 'akun berhasil dibuat!', 'success');
+            showScreen('dashboard');
+            startRealTimeUpdate();
             clearAuthForms();
         }
 
         function handleLogout() {
             currentUser = null;
+            clearSession();
+            clearRealTimeUpdate();
             showScreen('auth');
             clearAuthForms();
             showNotification('SUCCESS', 'logout berhasil', 'success');
@@ -1148,6 +1366,102 @@
             }
         }
 
+        // ===== REAL-TIME UPDATE SYSTEM =====
+        function startRealTimeUpdate() {
+            clearRealTimeUpdate();
+            realTimeUpdateTimer = setInterval(() => {
+                if (currentUser && currentUser.role === 'user') {
+                    updateDashboardRealTime();
+                } else if (currentUser && currentUser.role === 'admin') {
+                    updateAdminRealTime();
+                }
+            }, REAL_TIME_UPDATE_INTERVAL);
+        }
+
+        function clearRealTimeUpdate() {
+            if (realTimeUpdateTimer) {
+                clearInterval(realTimeUpdateTimer);
+                realTimeUpdateTimer = null;
+            }
+        }
+
+        function updateDashboardRealTime() {
+            const user = appData.users[currentUser.username];
+            if (!user) return;
+
+            const today = new Date().toDateString();
+            const lastWash = user.lastWash ? new Date(user.lastWash).toDateString() : null;
+            const hasSubmittedToday = lastWash === today;
+
+            // Update countdown in real-time
+            let nextWashDate;
+            if (user.lastWash) {
+                const last = new Date(user.lastWash);
+                nextWashDate = new Date(last.getTime() + WASH_INTERVAL * 24 * 60 * 60 * 1000);
+            } else {
+                nextWashDate = new Date();
+            }
+
+            updateCountdown(nextWashDate);
+
+            // Update visibility sections
+            const uploadSection = document.getElementById('uploadSection');
+            const rewardSection = document.getElementById('rewardSection');
+            const alreadySubmitted = document.getElementById('alreadySubmitted');
+            const waitingAdmin = document.getElementById('waitingAdmin');
+
+            if (hasSubmittedToday) {
+                const todayProof = user.proofs.find(p => new Date(p.date).toDateString() === today);
+                if (todayProof) {
+                    if (todayProof.status === 'verified' && todayProof.rewardClaimed) {
+                        uploadSection.style.display = 'none';
+                        rewardSection.style.display = 'none';
+                        alreadySubmitted.style.display = 'block';
+                        waitingAdmin.style.display = 'none';
+                    } else if (todayProof.status === 'pending') {
+                        uploadSection.style.display = 'none';
+                        rewardSection.style.display = 'none';
+                        alreadySubmitted.style.display = 'none';
+                        waitingAdmin.style.display = 'block';
+                    } else if (todayProof.status === 'verified' && !todayProof.rewardClaimed) {
+                        uploadSection.style.display = 'none';
+                        alreadySubmitted.style.display = 'none';
+                        waitingAdmin.style.display = 'none';
+                        rewardSection.style.display = 'block';
+                        displayReward(user);
+                    }
+                }
+            } else {
+                uploadSection.style.display = 'block';
+                rewardSection.style.display = 'none';
+                alreadySubmitted.style.display = 'none';
+                waitingAdmin.style.display = 'none';
+            }
+        }
+
+        function updateCountdown(targetDate) {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdownText').textContent = 'saatnya keramas!';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countdownText').textContent = 
+                `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function updateAdminRealTime() {
+            updateAdminDashboard();
+            displayProofsList();
+        }
+
         // ===== DASHBOARD =====
         function updateDashboard() {
             const user = appData.users[currentUser.username];
@@ -1155,9 +1469,12 @@
 
             const today = new Date().toDateString();
             const lastWash = user.lastWash ? new Date(user.lastWash).toDateString() : null;
-            const hasSubmittedToday = lastWash === today;
 
-            // Calculate next wash date
+            if (user.lastWash) {
+                const lastWashDate = new Date(user.lastWash).toLocaleDateString('id-ID');
+                document.getElementById('lastWashInfo').textContent = `terakhir keramas: ${lastWashDate}`;
+            }
+
             let nextWashDate;
             if (user.lastWash) {
                 const last = new Date(user.lastWash);
@@ -1174,58 +1491,51 @@
             });
 
             document.getElementById('nextWashDate').textContent = nextWashString;
-
-            // Update last wash info
-            if (user.lastWash) {
-                const lastWashDate = new Date(user.lastWash).toLocaleDateString('id-ID');
-                document.getElementById('lastWashInfo').textContent = `terakhir keramas: ${lastWashDate}`;
-            }
-
-            // Show appropriate section
-            const uploadSection = document.getElementById('uploadSection');
-            const rewardSection = document.getElementById('rewardSection');
-            const alreadySubmitted = document.getElementById('alreadySubmitted');
-            const waitingAdmin = document.getElementById('waitingAdmin');
-            const statsSection = document.getElementById('statsSection');
-
-            uploadSection.style.display = 'none';
-            rewardSection.style.display = 'none';
-            alreadySubmitted.style.display = 'none';
-            waitingAdmin.style.display = 'none';
-
-            if (hasSubmittedToday) {
-                // Check if already claimed reward today
-                const todayProof = user.proofs.find(p => new Date(p.date).toDateString() === today && p.status === 'verified');
-                if (todayProof && todayProof.rewardClaimed) {
-                    alreadySubmitted.style.display = 'block';
-                } else if (user.proofs.find(p => new Date(p.date).toDateString() === today)) {
-                    const pendingProof = user.proofs.find(p => new Date(p.date).toDateString() === today);
-                    if (pendingProof.status === 'pending') {
-                        waitingAdmin.style.display = 'block';
-                    } else if (pendingProof.status === 'verified' && !pendingProof.rewardClaimed) {
-                        displayReward(user);
-                        rewardSection.style.display = 'block';
-                    }
-                }
-            } else {
-                uploadSection.style.display = 'block';
-            }
+            updateCountdown(nextWashDate);
 
             // Update stats
             const verifiedProofs = user.proofs.filter(p => p.status === 'verified').length;
             document.getElementById('totalWashes').textContent = verifiedProofs;
             document.getElementById('totalRewards').textContent = user.rewardsClaimed;
-            statsSection.style.display = 'grid';
+            document.getElementById('statsSection').style.display = 'grid';
 
             // Display notifications
             displayNotifications();
+
+            // Initial state
+            updateDashboardRealTime();
+        }
+
+        function displayNotifications() {
+            const user = appData.users[currentUser.username];
+            const notifContainer = document.getElementById('notificationLetters');
+            notifContainer.innerHTML = '';
+
+            const relevantBroadcasts = appData.broadcasts.filter(b => !b.readBy || !b.readBy.includes(currentUser.username));
+            
+            relevantBroadcasts.forEach((broadcast) => {
+                const notif = document.createElement('div');
+                notif.className = 'letter';
+                notif.innerHTML = `
+                    <div class="letter-title">✉ SURAT DARI</div>
+                    <div class="letter-sender">» Alip Ganteng</div>
+                    <div class="letter-message">${broadcast.message}</div>
+                `;
+                notifContainer.appendChild(notif);
+
+                if (!broadcast.readBy) broadcast.readBy = [];
+                if (!broadcast.readBy.includes(currentUser.username)) {
+                    broadcast.readBy.push(currentUser.username);
+                    saveData();
+                }
+            });
         }
 
         function displayReward(user) {
             if (appData.rewardPhotos.length === 0) {
                 document.getElementById('rewardDisplay').innerHTML = `
-                    <div style="font-size: 40px; margin-bottom: 10px;">» REWARD</div>
-                    <div style="color: #666;">belum ada foto reward</div>
+                    <div style="font-size: 40px; margin-bottom: 12px;">» REWARD</div>
+                    <div style="color: rgba(255,255,255,0.6);">belum ada foto reward</div>
                 `;
                 return;
             }
@@ -1236,8 +1546,7 @@
                 <img src="${randomPhoto.data}" class="reward-image" onclick="openImageModal(this.src)">
                 <div class="reward-text">✓ REWARD KERAMAS</div>
                 <div class="reward-subtext">dari Alip Ganteng untuk kamu</div>
-                <div class="reward-claim-msg">untuk jaga-jaga kamu terus keramas ya sayang</div>
-                <button class="btn btn-success" onclick="claimReward()">◆ AMBIL REWARD</button>
+                <button class="btn btn-success" onclick="claimReward()" style="margin-top: 16px;">◆ AMBIL REWARD</button>
             `;
         }
 
@@ -1253,34 +1562,6 @@
                 showNotification('SUCCESS', 'reward sudah diambil, terima kasih sudah rajin keramas', 'success');
                 updateDashboard();
             }
-        }
-
-        function displayNotifications() {
-            const user = appData.users[currentUser.username];
-            const notifContainer = document.getElementById('notificationLetters');
-            notifContainer.innerHTML = '';
-
-            const relevantBroadcasts = appData.broadcasts.filter(b => !b.readBy || !b.readBy.includes(currentUser.username));
-            
-            relevantBroadcasts.forEach((broadcast, index) => {
-                const notif = document.createElement('div');
-                notif.className = 'letter';
-                notif.innerHTML = `
-                    <div class="letter-content">
-                        <div class="letter-title">✉ SURAT DARI</div>
-                        <div class="letter-sender">» Alip Ganteng</div>
-                        <div class="letter-message">${broadcast.message}</div>
-                    </div>
-                `;
-                notifContainer.appendChild(notif);
-
-                // Mark as read
-                if (!broadcast.readBy) broadcast.readBy = [];
-                if (!broadcast.readBy.includes(currentUser.username)) {
-                    broadcast.readBy.push(currentUser.username);
-                    saveData();
-                }
-            });
         }
 
         // ===== PROOF SUBMISSION =====
@@ -1325,7 +1606,7 @@
                 });
                 saveData();
 
-                showNotification('SUCCESS', 'bukti keramas berhasil disubmit, tunggu verifikasi admin', 'success');
+                showNotification('SUCCESS', 'bukti keramas berhasil disubmit', 'success');
                 cancelPreview();
                 updateDashboard();
             };
@@ -1337,7 +1618,10 @@
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
 
-            document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            const tabElement = document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
             event.target.classList.add('active');
         }
 
@@ -1357,7 +1641,7 @@
                 </div>
             `).join('');
 
-            document.getElementById('userListAdmin').innerHTML = userListHtml;
+            document.getElementById('userListAdmin').innerHTML = userListHtml || '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">tidak ada users</p>';
         }
 
         function previewAdminPhoto() {
@@ -1400,14 +1684,14 @@
         function displayRewardPhotos() {
             const grid = document.getElementById('rewardPhotosGrid');
             if (appData.rewardPhotos.length === 0) {
-                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">belum ada foto reward</p>';
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5); padding: 40px 20px;">belum ada foto reward</p>';
                 return;
             }
 
             grid.innerHTML = appData.rewardPhotos.map((photo, index) => `
                 <div class="photo-item" onclick="openImageModal('${photo.data}')">
                     <img src="${photo.data}">
-                    <button class="photo-item-delete" onclick="deleteRewardPhoto(${index}, event)">✕</button>
+                    <button class="photo-item-delete" onclick="deleteRewardPhoto(${index}, event)" style="display: none;">✕</button>
                 </div>
             `).join('');
         }
@@ -1426,45 +1710,54 @@
             const pendingProofs = appData.proofs.filter(p => p.status === 'pending');
 
             if (pendingProofs.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #999;">tidak ada bukti yang pending</p>';
+                container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 40px 20px;">tidak ada bukti yang pending</p>';
                 return;
             }
 
             container.innerHTML = pendingProofs.map((proof, index) => `
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <div style="margin-bottom: 10px;">
-                        <div style="font-weight: 700; color: #333;">» ${proof.username}</div>
-                        <div style="font-size: 13px; color: #666;">${new Date(proof.date).toLocaleDateString('id-ID')}</div>
+                <div style="background: rgba(102, 126, 234, 0.05); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid rgba(102, 126, 234, 0.2);">
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-weight: 800; color: #fff;">» ${proof.username}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.5);">${new Date(proof.date).toLocaleDateString('id-ID')}</div>
                     </div>
-                    <img src="${proof.data}" style="width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; cursor: pointer;" onclick="openImageModal('${proof.data}')">
+                    <img src="${proof.data}" style="width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border: 1px solid rgba(102, 126, 234, 0.3);" onclick="openImageModal('${proof.data}')">
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-success" style="flex: 1; padding: 10px; font-size: 13px;" onclick="verifyProof('${proof.username}', ${index})">✓ VERIFIKASI</button>
-                        <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 13px;" onclick="rejectProof('${proof.username}', ${index})">✕ TOLAK</button>
+                        <button class="btn btn-success" style="flex: 1; padding: 10px; font-size: 13px;" onclick="verifyProof('${proof.username}', '${proof.date}')">✓ VERIFIKASI</button>
+                        <button class="btn btn-danger" style="flex: 1; padding: 10px; font-size: 13px;" onclick="rejectProof('${proof.username}', '${proof.date}')">✕ TOLAK</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function verifyProof(username, index) {
-            const proof = appData.proofs[index];
-            proof.status = 'verified';
-            const user = appData.users[username];
-            const userProof = user.proofs.find(p => p.date === proof.date);
-            if (userProof) userProof.status = 'verified';
+        function verifyProof(username, proofDate) {
+            const proof = appData.proofs.find(p => p.username === username && p.date === proofDate);
+            if (proof) {
+                proof.status = 'verified';
+                const user = appData.users[username];
+                const userProof = user.proofs.find(p => p.date === proofDate);
+                if (userProof) userProof.status = 'verified';
 
-            saveData();
-            showNotification('SUCCESS', `bukti dari ${username} sudah diverifikasi`, 'success');
-            updateAdminDashboard();
-            displayProofsList();
+                saveData();
+                showNotification('SUCCESS', `bukti dari ${username} sudah diverifikasi`, 'success');
+                updateAdminDashboard();
+                displayProofsList();
+            }
         }
 
-        function rejectProof(username, index) {
-            appData.proofs.splice(index, 1);
-            const user = appData.users[username];
-            user.proofs = user.proofs.filter(p => p.date !== appData.proofs[index]?.date);
-            saveData();
-            showNotification('SUCCESS', `bukti dari ${username} sudah ditolak`, 'success');
-            displayProofsList();
+        function rejectProof(username, proofDate) {
+            const proofIndex = appData.proofs.findIndex(p => p.username === username && p.date === proofDate);
+            if (proofIndex !== -1) {
+                appData.proofs.splice(proofIndex, 1);
+                const user = appData.users[username];
+                const userProofIndex = user.proofs.findIndex(p => p.date === proofDate);
+                if (userProofIndex !== -1) {
+                    user.proofs.splice(userProofIndex, 1);
+                }
+                saveData();
+                showNotification('SUCCESS', `bukti dari ${username} sudah ditolak`, 'success');
+                displayProofsList();
+                updateAdminDashboard();
+            }
         }
 
         function sendBroadcast() {
@@ -1508,23 +1801,10 @@
             document.getElementById('imageModal').classList.remove('active');
         }
 
-        // Close modal when clicking outside
         document.addEventListener('click', function(event) {
             const modal = document.getElementById('imageModal');
             if (event.target === modal) {
                 closeImageModal();
-            }
-        });
-
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', function() {
-            showScreen('auth');
-        });
-
-        // Update proofs list when switching to admin proofs tab
-        document.addEventListener('click', function(event) {
-            if (event.target.textContent.includes('VERIFIKASI')) {
-                setTimeout(() => displayProofsList(), 0);
             }
         });
     </script>
